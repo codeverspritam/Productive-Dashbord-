@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FocusDeck — Productivity Dashboard</title>
+<link rel="stylesheet" href="style.css" />
+<script>
+  // Apply saved theme before first paint to avoid a flash of the wrong theme.
+  (function () {
+    var saved = localStorage.getItem('focusdeck-theme');
+    var theme = saved || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+</head>
+<body>
+
+  <div id="sky-bg" aria-hidden="true"></div>
+
+  <div class="app">
+
+    <!-- ============ TOPBAR: brand, date/time, weather, theme toggle ============ -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="dial-mark" aria-hidden="true"></span>
+        FocusDeck
+      </div>
+
+      <div class="topbar-widgets">
+        <div class="clock-widget" aria-label="Current date and time">
+          <div class="date-time-text">
+            <div class="time" id="digital-time">--:--:--</div>
+            <div class="date" id="digital-date">Loading date…</div>
+          </div>
+        </div>
+
+        <div class="weather-widget" aria-label="Current weather">
+          <span class="w-icon" id="weather-icon">⏳</span>
+          <div>
+            <div class="w-temp" id="weather-temp">--°</div>
+            <div class="w-loc" id="weather-loc">Locating…</div>
+          </div>
+        </div>
+
+        <button class="theme-toggle" id="theme-toggle" role="switch" aria-checked="true" aria-label="Toggle dark mode">
+          <span class="knob">◐</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ DASHBOARD (home screen) ============ -->
+    <main id="dashboard">
+      <h1 class="dashboard-title">Good to see you.</h1>
+      <p class="dashboard-sub">Pick a tool below — everything you enter is saved automatically.</p>
+
+      <div class="card-grid">
+
+        <button class="feature-card" data-open-feature="todo" aria-haspopup="dialog">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>
+          </span>
+          <h3>Todo List</h3>
+          <p>Add tasks, star what's important, check things off.</p>
+        </button>
+
+        <button class="feature-card" data-open-feature="planner" aria-haspopup="dialog">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          </span>
+          <h3>Daily Planner</h3>
+          <p>Lay out your day, hour by hour.</p>
+        </button>
+
+        <button class="feature-card" data-open-feature="quote" aria-haspopup="dialog">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 11c0-3 2-5 5-6l1 2c-2 .6-3 1.7-3 3h3v5H7v-4zm9 0c0-3 2-5 5-6l1 2c-2 .6-3 1.7-3 3h3v5h-6v-4z"/></svg>
+          </span>
+          <h3>Motivation Quote</h3>
+          <p>A fresh line of encouragement, on demand.</p>
+        </button>
+
+        <button class="feature-card" data-open-feature="pomodoro" aria-haspopup="dialog">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M10 2h4"/></svg>
+          </span>
+          <h3>Pomodoro Timer</h3>
+          <p>Work in focused bursts, then take a breather.</p>
+        </button>
+
+        <button class="feature-card" data-open-feature="goals" aria-haspopup="dialog">
+          <span class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+          </span>
+          <h3>Daily Goals</h3>
+          <p>Set today's targets and watch the ring fill in.</p>
+        </button>
+
+      </div>
+
+      <p class="footer-note">Todo, Planner, and Goals data live in this browser's Local Storage — nothing leaves your device.</p>
+    </main>
+
+    <!-- ============ FEATURE: TODO LIST ============ -->
+    <section class="feature-view" id="feature-todo" hidden>
+      <div class="feature-header">
+        <button class="back-btn" data-close-feature aria-label="Back to dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <h2>Todo List</h2>
+      </div>
+      <div class="feature-body">
+        <div class="panel">
+          <div class="input-row">
+            <input type="text" id="todo-input" placeholder="What needs doing?" aria-label="New task" />
+            <button class="btn-brass" id="todo-add">Add Task</button>
+          </div>
+          <ul class="list" id="todo-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURE: DAILY PLANNER ============ -->
+    <section class="feature-view" id="feature-planner" hidden>
+      <div class="feature-header">
+        <button class="back-btn" data-close-feature aria-label="Back to dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <h2>Daily Planner</h2>
+      </div>
+      <div class="feature-body">
+        <div class="panel">
+          <div class="planner-list" id="planner-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURE: MOTIVATION QUOTE ============ -->
+    <section class="feature-view" id="feature-quote" hidden>
+      <div class="feature-header">
+        <button class="back-btn" data-close-feature aria-label="Back to dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <h2>Motivation Quote</h2>
+      </div>
+      <div class="feature-body">
+        <div class="panel quote-panel">
+          <div class="quote-mark" aria-hidden="true">&ldquo;</div>
+          <p class="quote-text loading" id="quote-text">Fetching a fresh quote…</p>
+          <p class="quote-author" id="quote-author"></p>
+          <p class="quote-error" id="quote-error" hidden></p>
+          <button class="btn-brass" id="quote-new">New Quote</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURE: POMODORO TIMER ============ -->
+    <section class="feature-view" id="feature-pomodoro" hidden>
+      <div class="feature-header">
+        <button class="back-btn" data-close-feature aria-label="Back to dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <h2>Pomodoro Timer</h2>
+      </div>
+      <div class="feature-body">
+        <div class="panel pomodoro-panel">
+          <div class="session-label" id="session-label">Work Session</div>
+          <div class="timer-ring-wrap">
+            <svg viewBox="0 0 240 240">
+              <circle class="ring-track" cx="120" cy="120" r="108"></circle>
+              <circle class="ring-progress" id="timer-ring-progress" cx="120" cy="120" r="108"></circle>
+            </svg>
+            <div class="timer-readout" id="timer-readout">25:00</div>
+          </div>
+          <div class="timer-controls">
+            <button class="btn-brass" id="timer-start">Start</button>
+            <button class="btn-ghost" id="timer-pause">Pause</button>
+            <button class="btn-ghost" id="timer-reset">Reset</button>
+          </div>
+          <div class="pomodoro-settings">
+            <label>Work (min)
+              <input type="number" id="work-duration" value="25" min="1" max="90" />
+            </label>
+            <label>Break (min)
+              <input type="number" id="break-duration" value="5" min="1" max="30" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURE: DAILY GOALS ============ -->
+    <section class="feature-view" id="feature-goals" hidden>
+      <div class="feature-header">
+        <button class="back-btn" data-close-feature aria-label="Back to dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <h2>Daily Goals</h2>
+      </div>
+      <div class="feature-body">
+        <div class="panel">
+          <div class="goals-progress">
+            <div class="goals-ring-wrap">
+              <svg viewBox="0 0 60 60">
+                <circle class="ring-track" cx="30" cy="30" r="26"></circle>
+                <circle class="ring-progress" id="goals-ring-progress" cx="30" cy="30" r="26"></circle>
+              </svg>
+            </div>
+            <div>
+              <div class="goals-progress-text" id="goals-progress-text">0 of 0 completed</div>
+              <div class="goals-progress-sub" id="goals-progress-sub">Add a goal to get moving</div>
+            </div>
+          </div>
+          <div class="input-row">
+            <input type="text" id="goal-input" placeholder="What's today's goal?" aria-label="New goal" />
+            <button class="btn-brass" id="goal-add">Add Goal</button>
+          </div>
+          <ul class="list" id="goal-list"></ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
